@@ -1,8 +1,8 @@
 {
   "id": "/helana-faith/",
-  "name": "Helana Faith",
+  "name": "Helana Faith · 신앙 웹진",
   "short_name": "Helana Faith",
-  "description": "기독교·신앙 콘텐츠와 커뮤니티 허브. 모든 계정은 큰누나 명의.",
+  "description": "기독교·신앙 콘텐츠와 커뮤니티 허브. 말씀·기도·공동체·증거. 모든 계정은 큰누나 명의.",
   "lang": "ko",
   "dir": "ltr",
   "start_url": "/helana-faith/",
@@ -17,9 +17,9 @@
   "background_color": "#0a0908",
   "theme_color": "#0a0908",
   "categories": [
-    "productivity",
+    "lifestyle",
     "education",
-    "utilities"
+    "social"
   ],
   "prefer_related_applications": false,
   "icons": [
