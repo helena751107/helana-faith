@@ -3,6 +3,8 @@
 > What is real faith? A doubting Thomas (me) crosses Christianity, Catholicism, and Buddhism —
 > starting not from doctrine but from doubt and imagination, to find genuine belief.
 >
+> Part of the [**Helena Content Foundry**](https://github.com/helena751107/helena_phone) — mobile-first, MCP-verified.
+>
 > _Korean below = the full worked example._
 
 ---
