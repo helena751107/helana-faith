@@ -1,0 +1,7 @@
+# Helana Faith — faith as fantasy
+
+> A doubting Thomas seeking belief through doubt, not doctrine — faith explored from a third perspective. Part of the Helena aspiration track.
+
+- [Repository](https://github.com/helena751107/helana-faith)
+- [Live site (Korean)](https://helena751107.github.io/helana-faith/)
+- [README](https://github.com/helena751107/helana-faith#readme)
