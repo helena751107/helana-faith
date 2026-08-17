@@ -1,3 +1,12 @@
+# Helana Faith — faith as fantasy
+
+> What is real faith? A doubting Thomas (me) crosses Christianity, Catholicism, and Buddhism —
+> starting not from doctrine but from doubt and imagination, to find genuine belief.
+>
+> _Korean below = the full worked example._
+
+---
+
 # Helana Faith — 종교 판타지 채널
 
 > **진짜 종교란 무엇인가.** 기독교·천주교·불교를 넘나들며, 의심하는 토마스(본인)가
