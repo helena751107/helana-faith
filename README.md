@@ -1,5 +1,7 @@
 # Helana Faith — faith as fantasy
 
+![Helana Faith — faith as fantasy, rendered on one phone](assets/social-preview.jpg)
+
 > What is real faith? A doubting Thomas (me) crosses Christianity, Catholicism, and Buddhism —
 > starting not from doctrine but from doubt and imagination, to find genuine belief.
 >
