@@ -1,9 +1,9 @@
 {
   "id": "/helana-faith/",
-  "name": "Helana Faith · 신앙 웹진",
+  "name": "Helana Faith · Faith Webzine",
   "short_name": "Helana Faith",
-  "description": "기독교·신앙 콘텐츠와 커뮤니티 허브. 말씀·기도·공동체·증거. 모든 계정은 큰누나 명의.",
-  "lang": "ko",
+  "description": "A hub for Christian faith content and community. Word · Prayer · Community · Witness. All accounts are under Big Sister's name.",
+  "lang": "en",
   "dir": "ltr",
   "start_url": "/helana-faith/",
   "scope": "/helana-faith/",
