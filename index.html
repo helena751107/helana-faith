@@ -238,6 +238,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:none}
 .note{margin-top:28px;padding:16px 18px;border:1px solid var(--rule-strong);background:color-mix(in srgb,var(--gold) 8%,var(--paper-2));font-size:.88rem;color:var(--ink-dim);font-weight:300}
 .note strong{color:var(--gold-bright);font-weight:600}
 
+.hero-shot{position:relative;margin:44px 0 0;border:1px solid var(--rule-strong);overflow:hidden;background:var(--paper-2)}
+.hero-shot img{width:100%;height:auto;display:block;filter:saturate(1.05) contrast(1.03)}
+.hero-shot .cap{position:absolute;left:14px;bottom:14px;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-bright);background:rgba(10,9,8,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:7px 11px;border:1px solid rgba(244,239,230,.15)}
+[data-theme="light"] .hero-shot .cap{background:rgba(247,241,230,.6);color:var(--gold);border-color:rgba(26,21,16,.15)}
+@media(max-width:640px){.hero-shot{margin-top:32px}.hero-shot .cap{font-size:.6rem;padding:6px 9px}}
+
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .reveal.in{opacity:1;transform:none}
 .reveal-d1{transition-delay:.08s}.reveal-d2{transition-delay:.16s}.reveal-d3{transition-delay:.24s}
@@ -407,6 +413,10 @@ section.chapter.acc .acc-panel.open > .acc-inner{opacity:1;padding-bottom:clamp(
       <div class="s"><div class="v" data-count="1">0</div><div class="l">Discord</div></div>
       <div class="s"><div class="v" data-count="1">0</div><div class="l">Name</div></div>
       <div class="s"><div class="v" data-count="0">0</div><div class="l">SW</div></div>
+    </div>
+    <div class="hero-shot">
+      <img src="assets/hero-web.jpg" alt="A hand reaching toward a glowing smartphone, warm golden light and softly blurred stained-glass church windows in the background — a quiet image of reaching for faith through everyday life." loading="eager" width="1600" height="800">
+      <span class="cap">Helana Faith · A Third Perspective</span>
     </div>
   </div>
 </section>
