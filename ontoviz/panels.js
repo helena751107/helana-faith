@@ -35,6 +35,41 @@ const decode = (s) => String(s)
   .replace(/&#8212;|&mdash;/g, '—').replace(/&#8211;|&ndash;/g, '–')
   .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
 
+/* ── supersampling ─────────────────────────────────────────────────
+ * Every panel is painted at device resolution, not CSS resolution. The canvas
+ * is sized in CSS pixels, then drawn through ctx.scale(ss) so glyph edges land
+ * on real screen pixels. Text on screen is a ratio of texture width to panel
+ * width, so this is the one thing that decides whether the card reads crisp on
+ * a retina screen or looks soft — the "해상도" complaint in one place.
+ *
+ * ss follows the width the panel actually occupies on screen (frac × viewport ×
+ * dpr) and is capped by a per-texture pixel budget so a 4K monitor cannot blow
+ * up VRAM. Mobile panels are already 1:1 (760px texture on a 780px buffer), so
+ * they come out at ss = 1 and cost nothing.
+ */
+const TEX_PX = 4.2e6;                       /* ≈ 17 MB RGBA per texture */
+
+export function ssFor(W, H, frac = 0.62) {
+  const dpr = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, 2);
+  const want = (frac * (innerWidth || 1440) * dpr) / W;
+  return Math.max(1, Math.min(want, Math.sqrt(TEX_PX / (W * H)), 2));
+}
+
+function mk(w, h, ss) {
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w * ss));
+  c.height = Math.max(1, Math.round(h * ss));
+  c.__ss = ss;
+  const x = c.getContext('2d');
+  x.setTransform(ss, 0, 0, ss, 0, 0);
+  return { c, x };
+}
+
+/* blit a (possibly supersampled) scratch canvas onto the final one, in CSS px */
+function blit(dst, src, w, h) {
+  dst.drawImage(src, 0, 0, w * (src.__ss || 1), h * (src.__ss || 1), 0, 0, w, h);
+}
+
 export function parseRich(str) {
   str = decode(str);
   const out = [];
@@ -162,9 +197,8 @@ function chip(ctx, x, y, w, h, label, color, size = 19) {
 export function chapterTexture(sec, nodes, narrow = false) {
   const W = narrow ? 760 : 1200, P = narrow ? 56 : 74;
   const FS = narrow ? 84 : 104, FD = narrow ? 27 : 30;
-  const raw = document.createElement('canvas');
-  raw.width = W; raw.height = 2100;
-  const x = raw.getContext('2d');
+  const ss = ssFor(W, narrow ? 900 : 1000, narrow ? 0.94 : 0.62);
+  const { c: raw, x } = mk(W, 2100, ss);
   const hotspots = [];
 
   kicker(x, `${sec.num || ''} · ${sec.label}`, P, narrow ? 104 : 118, { size: narrow ? 24 : 27 });
@@ -205,9 +239,7 @@ export function chapterTexture(sec, nodes, narrow = false) {
   if ('letterSpacing' in x) x.letterSpacing = '0px';
 
   const H = Math.max(Math.ceil(sourceY + (narrow ? 92 : 110)), narrow ? 900 : 980);
-  const out = document.createElement('canvas');
-  out.width = W; out.height = H;
-  const o = out.getContext('2d');
+  const { c: out, x: o } = mk(W, H, ss);
   shell(o, W, H);
   o.save();
   o.font = `600 ${narrow ? 360 : 430}px ${SERIF}`;
@@ -215,7 +247,7 @@ export function chapterTexture(sec, nodes, narrow = false) {
   o.textAlign = 'right';
   o.fillText(String(sec.num || ''), W - P + 10, H - (narrow ? 150 : 170));
   o.restore();
-  o.drawImage(raw, 0, 0, W, H, 0, 0, W, H);
+  blit(o, raw, W, H);
 
   return { canvas: out, hotspots, w: W, h: H };
 }
@@ -223,9 +255,7 @@ export function chapterTexture(sec, nodes, narrow = false) {
 /* ── dashboard panel (station 0) ────────────────────────────────── */
 export function dashboardTexture({ stats, legend, modes, mode, narrow = false }) {
   const W = narrow ? 760 : 1300, H = narrow ? 1400 : 1360, P = narrow ? 56 : 76;
-  const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const x = c.getContext('2d');
+  const { c, x } = mk(W, H, ssFor(W, H, narrow ? 0.94 : 0.58));
   const hotspots = [];
   shell(x, W, H, { fill: '#0a0908' });
 
@@ -325,9 +355,7 @@ export function dashboardTexture({ stats, legend, modes, mode, narrow = false })
 /* ── intro panel ────────────────────────────────────────────────── */
 export function introTexture(narrow = false) {
   const W = narrow ? 760 : 1280, H = narrow ? 1000 : 840, P = narrow ? 56 : 86;
-  const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const x = c.getContext('2d');
+  const { c, x } = mk(W, H, ssFor(W, H, narrow ? 0.96 : 1));
   const hotspots = [];
   x.clearRect(0, 0, W, H);
   rr(x, 2, 2, W - 4, H - 4, 26);
@@ -365,9 +393,8 @@ export function introTexture(narrow = false) {
 /* ── inspector panel ────────────────────────────────────────────── */
 export function inspectorTexture(node, rels, narrow = false) {
   const W = narrow ? 760 : 980, P = narrow ? 48 : 62;
-  const raw = document.createElement('canvas');
-  raw.width = W; raw.height = 1600;
-  const x = raw.getContext('2d');
+  const ss = ssFor(W, narrow ? 720 : 600, narrow ? 0.94 : 0.62);
+  const { c: raw, x } = mk(W, 1600, ss);
   const hotspots = [];
 
   x.beginPath(); x.arc(P + 5, 80, 6, 0, Math.PI * 2); x.fillStyle = COL[node.s]; x.fill();
@@ -426,11 +453,9 @@ export function inspectorTexture(node, rels, narrow = false) {
   }
 
   const H = Math.max(by + bh + (narrow ? 66 : 70), narrow ? 720 : 600);
-  const out = document.createElement('canvas');
-  out.width = W; out.height = H;
-  const o = out.getContext('2d');
+  const { c: out, x: o } = mk(W, H, ss);
   shell(o, W, H, { fill: '#0a0908' });
-  o.drawImage(raw, 0, 0, W, H, 0, 0, W, H);
+  blit(o, raw, W, H);
 
   return { canvas: out, hotspots, w: W, h: H };
 }
@@ -438,9 +463,7 @@ export function inspectorTexture(node, rels, narrow = false) {
 /* ── station bar: 3D navigation under each chapter ─────────────── */
 export function barTexture({ current, label, narrow = false }) {
   const W = narrow ? 760 : 1500, H = narrow ? 280 : 270;
-  const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const x = c.getContext('2d');
+  const { c, x } = mk(W, H, ssFor(W, H, narrow ? 0.94 : 0.62));
   const hotspots = [];
   x.clearRect(0, 0, W, H);
   rr(x, 2, 2, W - 4, H - 4, 10);

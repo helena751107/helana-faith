@@ -19,12 +19,17 @@ export async function createGraph(container, data, opts = {}) {
   const GPU = !!renderer.backend.isWebGPUBackend;
   // GPU 장치 상실(드라이버 리셋 · 과부하) → 이 세션은 WebGL2 경로로 다시 시작
   if (GPU && renderer.backend.device?.lost) renderer.backend.device.lost.then((info) => { if (info.reason === "destroyed") return; sessionStorage.setItem("hmc_gl", "1"); location.reload(); });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, low ? 1 : 1.5));
+  /* 해상도: 화면이 요구하는 만큼 그린다(레티나/4K에서 1.5배 상한이면 글자가 뭉갠다).
+     느린 기기만 프레임을 보고 한 단계씩 양보한다. */
+  const HQ = /[?&]hq=1/.test(location.search);      /* ?hq=1 — 해상도를 고정한다(검수용) */
+  /* 휴대폰도 2배로 그린다 — 1.5배 상한이면 패널 글자가 뭉갠다. 느린 기기는 아래 적응형 감쇠가 받는다. */
+  const PR_MAX = Math.min(devicePixelRatio || 1, 2);
+  renderer.setPixelRatio(PR_MAX);
   renderer.setClearColor(0x000000, 1);
   container.append(renderer.domElement);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(42, 1, 1, 8000);
   camera.position.set(0, 120, 1100);
-  const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enableZoom = false; controls.enablePan = false; controls.autoRotate = !reduce; controls.autoRotateSpeed = 0.45;
+  const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.enableZoom = false; controls.enablePan = false; controls.autoRotate = false;   /* 글자 패널은 정면으로 — 흔들리면 읽히지 않는다 */
 
   // ── 데이터
   const nodes = data.nodes, N = nodes.length, byId = new Map(nodes.map((n, i) => [n.id, i]));
@@ -168,7 +173,8 @@ export async function createGraph(container, data, opts = {}) {
     return cameraPosition(c.clone().add(dir.multiplyScalar(dist)), c, ms); }
 
   // ── 루프
-  let last = performance.now(), frames = 0, fps = 0, ft = last, simT = 0;
+  let last = performance.now(), frames = 0, fps = 0, ft = last, simT = 0, fails = 0;
+  const bootAt = last;
   function frame() {
     const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
     if (tw) { const k = Math.min(1, (now - tw.t0) / tw.ms), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; camera.position.lerpVectors(tw.from, tw.to, e); controls.target.lerpVectors(tw.ft, tw.tt, e); if (k >= 1) tw = null; }
@@ -177,7 +183,14 @@ export async function createGraph(container, data, opts = {}) {
     if (GPU) { renderer.compute(step); U.kick.value = -1; } else stepCPU();
     mirror(now);
     post ? post.render() : renderer.render(scene, camera);
-    frames++; if (now - ft > 1000) { fps = Math.round((frames * 1000) / (now - ft)); frames = 0; ft = now; }
+    frames++; if (now - ft > 1000) { fps = Math.round((frames * 1000) / (now - ft)); frames = 0; ft = now;
+      /* 적응형 해상도: 워밍업 이후 30fps를 2초 연속 못 넘기면 배율만 한 단계 내린다 */
+      if (!HQ && now - bootAt > (low ? 4500 : 9000)) {
+        const pr = renderer.getPixelRatio();
+        if (fps < 30 && fails >= 2 && pr > 1.26) { renderer.setPixelRatio(Math.max(1, pr - 0.4)); size(); fails = 0; }
+        else fails = fps < 30 ? fails + 1 : 0;
+      }
+    }
   }
   const size = () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = camera.aspect < 0.85 ? 56 : 42; camera.updateProjectionMatrix(); G._offset && G._offset(); };
   addEventListener("resize", size); size();

@@ -153,7 +153,7 @@ export async function initOnto(opts = {}) {
     if (m.map) m.map.dispose();
     const t = new THREE.CanvasTexture(tex.canvas);
     t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 4;
+    t.anisotropy = Math.min(8, renderer.getMaxAnisotropy ? renderer.getMaxAnisotropy() : 4);
     m.map = t;
     m.needsUpdate = true;
     mesh.userData.tex = tex;
@@ -162,7 +162,7 @@ export async function initOnto(opts = {}) {
   function addPanel(tex, w, h, x, y, z, kind) {
     const t = new THREE.CanvasTexture(tex.canvas);
     t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 4;
+    t.anisotropy = Math.min(8, renderer.getMaxAnisotropy ? renderer.getMaxAnisotropy() : 4);
     const mat = new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false, opacity: 1 });
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
     mesh.position.set(x, y, z);
@@ -229,7 +229,7 @@ export async function initOnto(opts = {}) {
     for (let i = 0; i < SECTIONS.length; i++) {
       const [w, h] = dimOfStation(i);
       const top = 90 + h / 2 + 8, bottom = barYFor(i) - DIM.bar[1] / 2 - 8;
-      d = Math.max(d, ((top - bottom) / (2 * tan)) * (narrow ? 1.07 : 1.02), (w * (narrow ? 1.08 : 1.14)) / (2 * tan * aspect));
+      d = Math.max(d, ((top - bottom) / (2 * tan)) * (narrow ? 1.07 : 1.02), (w * (narrow ? 1.07 : 1.07)) / (2 * tan * aspect));
     }
     frameD = d;
   }
@@ -520,8 +520,8 @@ export async function initOnto(opts = {}) {
     const [iw, ih] = DIM.intro;
     /* wide screens pull back a little so the crown of glows reads around the
        card; portrait keeps the card filling the frame */
-    const k = narrow ? 1 : 1.3;
-    const d = Math.max((ih * 1.22 * k) / (2 * tan), (iw * 1.12 * k) / (2 * tan * aspect));
+    const k = narrow ? 1 : 1.1;
+    const d = Math.max((ih * 1.2 * k) / (2 * tan), (iw * 1.06 * k) / (2 * tan * aspect));
     return { pos: { x: 0, y: 160 + d * 0.16, z: 280 + d }, look: { x: 0, y: 160, z: 280 } };
   }
   const hero = heroFrame();
